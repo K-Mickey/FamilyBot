@@ -1,4 +1,4 @@
-from .main import dp
+from .habits import dp
 
 
 __all__ = ['dp']

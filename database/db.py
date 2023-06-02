@@ -22,12 +22,12 @@ class DataBase:
         query = "CREATE TABLE IF NOT EXISTS habits(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)"
         self._execute(query)
 
-    def insert(self, string: str):
+    def habits_insert(self, string: str):
         values = (string, )
         query = "INSERT INTO habits (text) VALUES (?)"
         self._execute(query, values)
 
-    def get_all(self):
+    def habits_get(self):
         query = "SELECT text FROM habits"
         self._execute(query)
         return self._cur.fetchall()

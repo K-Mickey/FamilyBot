@@ -2,13 +2,6 @@ from aiogram.types import Message, CallbackQuery
 
 from loader import dp, db
 from keyboards.inline.habits import habits_data
-from keyboards import inline
-
-
-async def habits_actual_view_all(message: Message):
-    list_actual_habits = db.actual_habits_get()
-    kb = inline.habits.get_actual_habits(list_actual_habits)
-    await message.answer("Вот список актуальных привычек", reply_markup=kb)
 
 
 @dp.callback_query_handler(habits_data.filter(action="add_to_plan"))

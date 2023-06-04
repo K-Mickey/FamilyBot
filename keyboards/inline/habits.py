@@ -11,6 +11,18 @@ def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:
     return kb
 
 
+def get_habits(buttons: list) -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup()
+    for button in buttons:
+        kb.add(InlineKeyboardButton(str(button[0]), callback_data=habits_data.new(action="")))
+    kb.add(
+        InlineKeyboardButton("Добавить запись", callback_data=habits_data.new(action="add_note")),
+        InlineKeyboardButton("Удалить все записи", callback_data=habits_data.new(action="del_all_notes")),
+    )
+    kb.add(InlineKeyboardButton("<-", callback_data=habits_data.new(action="back_main_menu")))
+    return kb
+
+
 def get_plan_kb():
     kb = InlineKeyboardMarkup()
     kb.add(

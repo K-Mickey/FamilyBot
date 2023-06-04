@@ -1,3 +1,4 @@
-from .manage_db import dp
+from .habits import dp
+from .actual_habits import dp
 
 __all__ = ['dp']

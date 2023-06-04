@@ -50,7 +50,12 @@ class DataBase:
         self._execute(query)
         return self._cur.fetchall()
 
-    def habits_remove(self, text: str):
+    def habits_remove(self, text: str = None):
+        if not text:
+            query = "DELETE FROM habits"
+            self._execute(query)
+            return
+
         values = (text, )
         query = "DELETE FROM habits WHERE text=(?)"
         self._execute(query, values)

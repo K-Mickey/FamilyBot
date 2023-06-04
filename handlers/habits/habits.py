@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
 from loader import dp, db
-from keyboards import inline
+from keyboards import inline, reply
 from keyboards.inline.habits import habits_data
 
 
@@ -16,10 +16,16 @@ class OrderDel(StatesGroup):
     confirm = State()
 
 
-async def habits_inline_view_all(message: Message):
-    list_actual_habits = db.actual_habits_get()
-    kb = inline.habits.get_actual_habits(list_actual_habits)
-    await message.answer("Вот список актуальных привычек", reply_markup=kb)
+class OrderDelAll(StatesGroup):
+    confirm = State()
+
+
+async def habits_planing_start(message: Message):
+    list_habits = db.habits_get()
+    await message.answer(f"Вот весь список привычек. Всего {len(list_habits)} записей",
+                         reply_markup=reply.habits.get_planing_menu())
+    for habit in list_habits:
+        await message.answer(str(habit[0]), reply_markup=inline.habits.get_plan_kb())
 
 
 @dp.callback_query_handler(habits_data.filter(action="delete_from_habits"))
@@ -48,7 +54,28 @@ async def habits_inline_remove_cancel(query: CallbackQuery, state: FSMContext):
     await query.answer()
 
 
-@dp.message_handler(text="Добавить новую запись")
+@dp.message_handler(text="Удалить все записи из плана")
+async def habits_remove_all_notes(message: Message):
+    await message.answer("Вы уверены, что хотите удалить все записи?", reply_markup=inline.choose.confirm())
+    await OrderDelAll.confirm.set()
+
+
+@dp.callback_query_handler(state=OrderDelAll.confirm, text="yes")
+async def habits_remove_all_notes_confirm(query: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await query.answer()
+    db.habits_remove()
+    await query.message.answer("Все записи были удалены")
+
+
+@dp.callback_query_handler(state=OrderDelAll.confirm, text="no")
+async def habits_remove_all_notes_cancel(query: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await query.answer()
+    await query.message.answer("Удаление отменено")
+
+
+@dp.message_handler(text="Добавить новую запись в план")
 async def habits_insert(message: Message):
     await message.answer("Введите новую запись")
     await OrderAdd.await_text.set()

@@ -3,8 +3,8 @@ from aiogram.types import Message, CallbackQuery
 
 from loader import dp
 from keyboards.inline import main
-from .habits.actual_habits import habits_planing_start
-from .habits.habits import habits_inline_view_all
+from .habits.actual_habits import habits_actual_view_all
+from .habits.habits import habits_planing_start
 
 
 @dp.message_handler(CommandStart())
@@ -21,5 +21,5 @@ async def inline_main_menu_planing(query: CallbackQuery):
 
 @dp.callback_query_handler(main.main_data.filter(action="actual"))
 async def inline_main_menu_actual(query: CallbackQuery):
-    await habits_inline_view_all(query.message)
+    await habits_actual_view_all(query.message)
     await query.answer()

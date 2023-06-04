@@ -1,4 +1,4 @@
-from aiogram.dispatcher.filters import CommandStart
+from aiogram.dispatcher.filters import CommandStart, CommandHelp
 from aiogram.types import Message, CallbackQuery
 
 from loader import dp
@@ -11,6 +11,12 @@ from .habits.habits import habits_planing_start
 async def cmd_start(message: Message):
     text = "Тебя приветствует семейный бот 😊\nВыбери, что ты хочешь сделать!"
     await message.answer(text, reply_markup=main.get_menu())
+
+
+@dp.message_handler(CommandHelp())
+async def cmd_help(message: Message):
+    text = "Тут будет располагаться справка"
+    await message.answer(text)
 
 
 @dp.callback_query_handler(main.main_data.filter(action="planing"))

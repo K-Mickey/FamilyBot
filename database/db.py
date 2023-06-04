@@ -37,7 +37,7 @@ class DataBase:
         self._execute(query)
 
     def _create_actual_habits_tables(self):
-        query = "CREATE TABLE IF NOT EXISTS actual_habits(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)"
+        query = "CREATE TABLE IF NOT EXISTS actual_habits(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, habit_id INT)"
         self._execute(query)
 
     def habits_insert(self, string: str):
@@ -45,8 +45,14 @@ class DataBase:
         query = "INSERT INTO habits (text) VALUES (?)"
         self._execute(query, values)
 
-    def habits_get(self):
-        query = "SELECT text FROM habits"
+    def habits_find_note(self, but_id: int):
+        values = (but_id, )
+        query = "SELECT text FROM habits WHERE id=(?)"
+        self._execute(query, values)
+        return self._cur.fetchone()
+
+    def habits_get(self, text: bool = True):
+        query = "SELECT text FROM habits" if text else "SELECT * FROM habits"
         self._execute(query)
         return self._cur.fetchall()
 
@@ -60,12 +66,18 @@ class DataBase:
         query = "DELETE FROM habits WHERE text=(?)"
         self._execute(query, values)
 
-    def actual_habits_insert(self, string: str):
-        values = (string, )
-        query = "INSERT INTO actual_habits (text) VALUES (?)"
+    def actual_habits_insert(self, text: str, habit_id: int):
+        values = (text, habit_id)
+        query = "INSERT INTO actual_habits (text, habit_id) VALUES (?, ?)"
         self._execute(query, values)
 
     def actual_habits_get(self):
         query = "SELECT text FROM actual_habits"
         self._execute(query)
         return self._cur.fetchall()
+
+    def actual_habits_find_note(self, but_id: int):
+        values = (but_id, )
+        query = "SELECT text FROM actual_habits WHERE habit_id=(?)"
+        self._execute(query, values)
+        return self._cur.fetchone()

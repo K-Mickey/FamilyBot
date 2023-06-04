@@ -20,7 +20,7 @@ async def cmd_help(message: Message):
 @dp.callback_query_handler(inline.main.main_data.filter(action="planing"))
 async def inline_main_menu_planing(query: CallbackQuery):
     await query.answer()
-    list_habits = db.habits_get()
+    list_habits = db.habits_get(text=False)
     kb = inline.habits.get_habits(list_habits)
     await query.message.edit_text(f"Вот весь список привычек. Всего {len(list_habits)} записей", reply_markup=kb)
 

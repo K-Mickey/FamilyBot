@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
 habits_data = CallbackData("id", "action")
+habits_data_with_id = CallbackData("id", "action", "but_id")
 
 
 def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:
@@ -13,8 +14,9 @@ def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:
 
 def get_habits(buttons: list) -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup()
-    for button in buttons:
-        kb.add(InlineKeyboardButton(str(button[0]), callback_data=habits_data.new(action="")))
+    for but_id, text in buttons:
+        kb.add(InlineKeyboardButton(str(text),
+                                    callback_data=habits_data_with_id.new(action="activate", but_id=str(but_id))))
     kb.add(
         InlineKeyboardButton("Добавить запись", callback_data=habits_data.new(action="add_note")),
         InlineKeyboardButton("Удалить все записи", callback_data=habits_data.new(action="del_all_notes")),

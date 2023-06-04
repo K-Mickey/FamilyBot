@@ -3,7 +3,8 @@ from aiogram.types import Message, CallbackQuery
 
 from loader import dp
 from keyboards.inline import main
-from .habits.manage_db import habits_inline_view_all, habits_planing_start
+from .habits.actual_habits import habits_planing_start
+from .habits.habits import habits_inline_view_all
 
 
 @dp.message_handler(CommandStart())

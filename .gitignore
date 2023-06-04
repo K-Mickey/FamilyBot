@@ -1,3 +1,5 @@
 /virtualenv/
 /.idea/
 /database/base.db
+/log_file.log
+/database/log_db.log

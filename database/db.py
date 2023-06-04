@@ -1,9 +1,20 @@
+import logging
+import os
 import sqlite3
+
+from config import LOG_FMT
+
+logger = logging.getLogger(__name__)
+logfile = logging.FileHandler("database/log_db.log")
+logfile.setLevel(logging.DEBUG)
+logfile.setFormatter(logging.Formatter(LOG_FMT))
+logger.addHandler(logfile)
 
 
 class DataBase:
     def __init__(self, name: str = "test.db"):
-        self._conn = sqlite3.connect(name)
+        self._name = name
+        self._conn = sqlite3.connect(self._name)
         self._cur = self._conn.cursor()
 
     def __del__(self):
@@ -11,11 +22,13 @@ class DataBase:
 
     def _execute(self, query: str, values: tuple = tuple()):
         args = (query, values) if values else (query, )
+        logger.debug(str(args))
         self._cur.execute(*args)
-        print(self._cur)
         self._conn.commit()
 
     def create_tables(self):
+        if not os.path.exists(self._name):
+            logger.info("DB WAS CREATE")
         self._create_habit_tables()
         self._create_actual_habits_tables()
 
@@ -41,7 +54,6 @@ class DataBase:
         values = (text, )
         query = "DELETE FROM habits WHERE text=(?)"
         self._execute(query, values)
-
 
     def actual_habits_insert(self, string: str):
         values = (string, )

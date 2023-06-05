@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery
 
 from loader import dp, db
 from keyboards import inline
+from keyboards.inline.habits import habits_data
 
 
 @dp.message_handler(CommandStart())
@@ -17,6 +18,7 @@ async def cmd_help(message: Message):
     await message.answer(text)
 
 
+@dp.callback_query_handler(habits_data.filter(action="back_habits_menu"))
 @dp.callback_query_handler(inline.main.main_data.filter(action="planing"))
 async def inline_main_menu_planing(query: CallbackQuery):
     await query.answer()

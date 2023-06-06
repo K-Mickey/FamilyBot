@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-actual_habits_data = CallbackData("id", "action", "btn_id")
+actual_habits_data = CallbackData("actual_id", "action", "btn_id")
 
 
 def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:

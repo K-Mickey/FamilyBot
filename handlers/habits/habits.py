@@ -112,13 +112,12 @@ async def habits_insert_into_actual_list(query: CallbackQuery, callback_data: di
     data = await state.get_data()
     text = str(data["text"])
     btn_id = int(data["btn_id"])
+    await state.finish()
     if btn_id == int(callback_data["btn_id"]):
-        await state.finish()
         db.actual_habits_insert(text, btn_id)
         await query.answer("Запись добавлена")
     else:
         await query.answer()
-        await state.finish()
 
 
 @dp.callback_query_handler(habits_data.filter(action="habits_delete_menu"))

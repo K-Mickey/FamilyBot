@@ -1,8 +1,26 @@
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
+from handlers.main import cmd_start
 from loader import dp, db
 from keyboards import inline
 from keyboards.inline.actual_habits import actual_habits_data
+
+
+class ActOrderDel(StatesGroup):
+    confirm = State()
+
+
+class ActOrderDelAll(StatesGroup):
+    confirm = State()
+
+
+@dp.callback_query_handler(actual_habits_data.filter(action="back_main_menu"))
+async def back_to_main_menu(query: CallbackQuery):
+    await query.answer()
+    await query.message.delete()
+    await cmd_start(query.message)
 
 
 @dp.callback_query_handler(actual_habits_data.filter(action="info"))
@@ -16,3 +34,47 @@ async def actual_habits_show_delete_menu(query: CallbackQuery):
     kb = inline.actual_habits.get_delete_actual_habits(list_actual_habits)
     await query.message.edit_text("Нажмите дважды на запись, которую хотите удалить", reply_markup=kb)
     await query.answer()
+
+
+@dp.callback_query_handler(actual_habits_data.filter(action="delete_actual_note"))
+async def actual_habits_delete(query: CallbackQuery, callback_data: dict, state: FSMContext):
+    btn_id = int(callback_data["btn_id"])
+    await state.update_data(btn_id=btn_id)
+    await ActOrderDel.confirm.set()
+    await query.answer("Для удаления нажмите еще раз")
+
+
+@dp.callback_query_handler(actual_habits_data.filter(action="delete_actual_note"), state=ActOrderDel.confirm)
+async def actual_habits_delete_confirm(query: CallbackQuery, callback_data: dict, state: FSMContext):
+    data = await state.get_data()
+    cur_btn_id = int(data["btn_id"])
+    prev_btn_id = int(callback_data["btn_id"])
+    await state.finish()
+    if cur_btn_id == prev_btn_id:
+        db.actual_habits_remove(note_id=cur_btn_id)
+        await query.answer("Запись удалена")
+        await actual_habits_show_delete_menu(query)
+    else:
+        await query.answer()
+
+
+@dp.callback_query_handler(actual_habits_data.filter(action="del_all_notes"))
+async def actual_habits_remove_all_notes(query: CallbackQuery):
+    await ActOrderDelAll.confirm.set()
+    await query.message.edit_text("Вы уверены, что хотите удалить все записи?", reply_markup=inline.choose.confirm())
+    await query.answer()
+
+
+@dp.callback_query_handler(state=ActOrderDelAll.confirm, text="yes")
+async def actual_habits_remove_all_notes_accept(query: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await query.answer("Все сообщения были удалены", show_alert=True)
+    db.actual_habits_remove()
+    await actual_habits_show_delete_menu(query)
+
+
+@dp.callback_query_handler(state=ActOrderDelAll.confirm, text="no")
+async def actual_habits_remove_all_notes_cancel(query: CallbackQuery, state: FSMContext):
+    await state.finish()
+    await query.answer("Удаление отменено")
+    await actual_habits_show_delete_menu(query)

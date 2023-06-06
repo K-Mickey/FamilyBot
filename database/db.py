@@ -85,3 +85,15 @@ class DataBase:
         query = "SELECT text FROM actual_habits WHERE habit_id=(?)"
         self._execute(query, values)
         return self._cur.fetchone()
+
+    def actual_habits_remove(self, note_id: int = None, text: str = None):
+        if note_id:
+            values = (note_id, )
+            query = "DELETE FROM actual_habits WHERE id=(?)"
+        elif text:
+            values = (text, )
+            query = "DELETE FROM actual_habits WHERE text=(?)"
+        else:
+            values = None
+            query = "DELETE FROM actual_habits"
+        self._execute(query, values)

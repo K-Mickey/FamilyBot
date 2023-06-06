@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery, ContentType
 from handlers.main import cmd_start, inline_main_menu_planing
 from loader import dp, db
 from keyboards import inline
-from keyboards.inline.habits import habits_data, habits_data_with_id
+from keyboards.inline.habits import habits_data
 
 
 class OrderAdd(StatesGroup):
@@ -23,6 +23,13 @@ class OrderDelAll(StatesGroup):
 
 class OrderInsertActual(StatesGroup):
     confirm = State()
+
+
+@dp.callback_query_handler(habits_data.filter(action="add_to_plan"))
+async def inline_add_to_actual_habits(query: CallbackQuery):
+    db.actual_habits_insert(query.message.text)
+    await query.message.answer("Запись добавлена в актуальный план")
+    await query.answer()
 
 
 @dp.callback_query_handler(habits_data.filter(action="back_main_menu"))
@@ -86,28 +93,28 @@ async def habits_insert_cancel(query: CallbackQuery, state: FSMContext):
     await inline_main_menu_planing(query)
 
 
-@dp.callback_query_handler(habits_data_with_id.filter(action="activate"))
+@dp.callback_query_handler(habits_data.filter(action="activate"))
 async def habits_info_about_note(query: CallbackQuery, callback_data: dict, state: FSMContext):
-    but_id = int(callback_data["but_id"])
-    actual_note = db.actual_habits_find_note(but_id)
+    btn_id = int(callback_data["btn_id"])
+    actual_note = db.actual_habits_find_note(btn_id)
     if actual_note:
         await query.answer("Данная запись уже есть в актуальном плане", show_alert=True)
     else:
-        note = db.habits_find_note(but_id)
+        note = db.habits_find_note(btn_id)
         await OrderInsertActual.confirm.set()
         await state.update_data(text=note[0])
-        await state.update_data(but_id=str(but_id))
+        await state.update_data(btn_id=str(btn_id))
         await query.answer("Для добавления нажмите ещё раз")
 
 
-@dp.callback_query_handler(habits_data_with_id.filter(action="activate"), state=OrderInsertActual.confirm)
+@dp.callback_query_handler(habits_data.filter(action="activate"), state=OrderInsertActual.confirm)
 async def habits_insert_into_actual_list(query: CallbackQuery, callback_data: dict, state: FSMContext):
     data = await state.get_data()
     text = str(data["text"])
-    but_id = int(data["but_id"])
-    if but_id == int(callback_data["but_id"]):
+    btn_id = int(data["btn_id"])
+    if btn_id == int(callback_data["btn_id"]):
         await state.finish()
-        db.actual_habits_insert(text, but_id)
+        db.actual_habits_insert(text, btn_id)
         await query.answer("Запись добавлена")
     else:
         await query.answer()
@@ -122,21 +129,21 @@ async def habits_show_delete_menu(query: CallbackQuery):
     await query.answer()
 
 
-@dp.callback_query_handler(habits_data_with_id.filter(action="delete_note"))
+@dp.callback_query_handler(habits_data.filter(action="delete_note"))
 async def habits_delete_note_activate(query: CallbackQuery, callback_data: dict, state: FSMContext):
-    but_id = int(callback_data["but_id"])
+    btn_id = int(callback_data["btn_id"])
     await OrderDel.confirm.set()
-    await state.update_data(but_id=str(but_id))
+    await state.update_data(btn_id=str(btn_id))
     await query.answer("Для удаления нажмите ещё раз")
 
 
-@dp.callback_query_handler(habits_data_with_id.filter(action="delete_note"), state=OrderDel.confirm)
+@dp.callback_query_handler(habits_data.filter(action="delete_note"), state=OrderDel.confirm)
 async def habits_delete_from_db(query: CallbackQuery, callback_data: dict, state: FSMContext):
     data = await state.get_data()
-    but_id = int(data["but_id"])
-    if but_id == int(callback_data["but_id"]):
+    btn_id = int(data["btn_id"])
+    if btn_id == int(callback_data["btn_id"]):
         await state.finish()
-        db.habits_remove(note_id=but_id)
+        db.habits_remove(note_id=btn_id)
         await query.answer("Запись удалена")
         await habits_show_delete_menu(query)
     else:

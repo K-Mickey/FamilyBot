@@ -17,7 +17,7 @@ def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:
 
 def get_delete_actual_habits(buttons: list) -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup()
-    for btn_id, text in buttons:
+    for btn_id, text, _ in buttons:
         btn_id = str(btn_id)
         text = str(text)
         kb.add(InlineKeyboardButton(text, callback_data=actual_habits_data.new(

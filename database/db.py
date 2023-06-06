@@ -75,8 +75,8 @@ class DataBase:
         query = "INSERT INTO actual_habits (text, habit_id) VALUES (?, ?)"
         self._execute(query, values)
 
-    def actual_habits_get(self):
-        query = "SELECT text FROM actual_habits"
+    def actual_habits_get(self, text: bool = True):
+        query = "SELECT text FROM actual_habits" if text else "SELECT * FROM actual_habits"
         self._execute(query)
         return self._cur.fetchall()
 

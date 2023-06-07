@@ -2,7 +2,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
-from handlers.main import cmd_start
+from handlers.main import cmd_start, inline_main_menu_actual
 from loader import dp, db
 from keyboards import inline
 from keyboards.inline.actual_habits import actual_habits_data
@@ -32,7 +32,10 @@ async def inline_info_habits(query: CallbackQuery):
 async def actual_habits_show_delete_menu(query: CallbackQuery):
     list_actual_habits = db.actual_habits_get(text=False)
     kb = inline.actual_habits.get_delete_actual_habits(list_actual_habits)
-    await query.message.edit_text("Нажмите дважды на запись, которую хотите удалить", reply_markup=kb)
+    text = "Нажмите <b>дважды на запись</b>, которую хотите удалить." \
+        if list_actual_habits else "Нет записей для удаления."
+
+    await query.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await query.answer()
 
 
@@ -61,7 +64,8 @@ async def actual_habits_delete_confirm(query: CallbackQuery, callback_data: dict
 @dp.callback_query_handler(actual_habits_data.filter(action="del_all_notes"))
 async def actual_habits_remove_all_notes(query: CallbackQuery):
     await ActOrderDelAll.confirm.set()
-    await query.message.edit_text("Вы уверены, что хотите удалить все записи?", reply_markup=inline.choose.confirm())
+    text = "Вы уверены, что хотите удалить <b>все записи?</b>"
+    await query.message.edit_text(text, reply_markup=inline.choose.confirm(), parse_mode="HTML")
     await query.answer()
 
 
@@ -70,7 +74,7 @@ async def actual_habits_remove_all_notes_accept(query: CallbackQuery, state: FSM
     await state.finish()
     await query.answer("Все сообщения были удалены", show_alert=True)
     db.actual_habits_remove()
-    await actual_habits_show_delete_menu(query)
+    await inline_main_menu_actual(query)
 
 
 @dp.callback_query_handler(state=ActOrderDelAll.confirm, text="no")

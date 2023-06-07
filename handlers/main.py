@@ -30,7 +30,8 @@ async def inline_main_menu_planing(query: CallbackQuery):
     list_habits = db.habits_get(text=False)
     n_habits = len(list_habits)
     kb = inline.habits.get_habits(list_habits)
-    text = f"Всего <i>{n_habits} записей.</i>\n" \
+
+    text = f"Всего записей: <i>{n_habits}.</i>\n" \
            f"Для добавления в актуальные <b>дважды</b> тапните на нужную кнопку." \
         if n_habits else "Список пуст, но Вы можете его пополнить!"
 
@@ -43,5 +44,10 @@ async def inline_main_menu_planing(query: CallbackQuery):
 async def inline_main_menu_actual(query: CallbackQuery):
     list_actual_habits = db.actual_habits_get()
     kb = inline.actual_habits.get_actual_habits(list_actual_habits)
-    await query.message.edit_text("Вот список актуальных привычек", reply_markup=kb)
+    n_actual_habits = len(list_actual_habits)
+
+    text = f"Всего актуальных записей: <i>{n_actual_habits}.</i>" \
+        if n_actual_habits else "Актуальный список пуст.\nМожете его пополнить в <i>Меню планирования!</i>"
+
+    await query.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await query.answer()

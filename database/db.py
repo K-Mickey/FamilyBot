@@ -1,6 +1,7 @@
 import logging
 import os
 import sqlite3
+from typing import Iterable
 
 from config import LOG_FMT
 
@@ -12,10 +13,13 @@ logger.addHandler(logfile)
 
 
 class DataBase:
+
     def __init__(self, name: str = "test.db"):
         self._name = name
         self._conn = sqlite3.connect(self._name)
         self._cur = self._conn.cursor()
+
+        self.create_tables()
 
     def __del__(self):
         self._conn.close()
@@ -37,63 +41,53 @@ class DataBase:
         self._execute(query)
 
     def _create_actual_habits_tables(self):
-        query = "CREATE TABLE IF NOT EXISTS actual_habits(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, habit_id INT)"
+        query = """
+        CREATE TABLE IF NOT EXISTS actual_habits(
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        text TEXT, 
+        btn_id INT
+        )"""
         self._execute(query)
 
-    def habits_insert(self, string: str):
-        values = (string, )
-        query = "INSERT INTO habits (text) VALUES (?)"
+    def insert(self, name_table: str = None, **kwargs) -> None:
+        values = tuple(kwargs.values())
+
+        query_args = self._join_values(kwargs)
+        n_query_values = self._join_n_questions(values)
+        query = f"INSERT INTO {name_table} ({query_args}) VALUES ({n_query_values})"
+
         self._execute(query, values)
 
-    def habits_find_note(self, but_id: int):
-        values = (but_id, )
-        query = "SELECT text FROM habits WHERE id=(?)"
-        self._execute(query, values)
-        return self._cur.fetchone()
+    def remove(self, name_table: str = None, **kwargs) -> None:
+        query = f"DELETE FROM {name_table}"
+        values = None
+        if kwargs:
+            where_val = self._join_by_and(kwargs)
+            query += f" WHERE {where_val}"
+            values = tuple(kwargs.values())
 
-    def habits_get(self, text: bool = True):
-        query = "SELECT text FROM habits" if text else "SELECT * FROM habits"
-        self._execute(query)
+        self._execute(query, values)
+
+    def get(self, name_table: str = None, select: Iterable = (), **kwargs) -> Iterable:
+        name_columns = self._join_values(select) if select else "*"
+        query = f"SELECT {name_columns} FROM {name_table}"
+        values = None
+        if kwargs:
+            where_val = self._join_by_and(kwargs)
+            query += f" WHERE {where_val}"
+            values = tuple(kwargs.values())
+
+        self._execute(query, values)
         return self._cur.fetchall()
 
-    def habits_remove(self, note_id: int = None, text: str = None):
-        if not text and not note_id:
-            query = "DELETE FROM habits"
-            self._execute(query)
-            return
+    @staticmethod
+    def _join_by_and(values: Iterable):
+        return " AND ".join([f"{i}=(?)" for i in values])
 
-        if note_id:
-            values = (note_id, )
-            query = "DELETE FROM habits WHERE id=(?)"
-        else:
-            values = (text, )
-            query = "DELETE FROM habits WHERE text=(?)"
-        self._execute(query, values)
+    @staticmethod
+    def _join_values(values: Iterable):
+        return ", ".join([str(arg) for arg in values])
 
-    def actual_habits_insert(self, text: str, habit_id: int):
-        values = (text, habit_id)
-        query = "INSERT INTO actual_habits (text, habit_id) VALUES (?, ?)"
-        self._execute(query, values)
-
-    def actual_habits_get(self, text: bool = True):
-        query = "SELECT text FROM actual_habits" if text else "SELECT * FROM actual_habits"
-        self._execute(query)
-        return self._cur.fetchall()
-
-    def actual_habits_find_note(self, but_id: int):
-        values = (but_id, )
-        query = "SELECT text FROM actual_habits WHERE habit_id=(?)"
-        self._execute(query, values)
-        return self._cur.fetchone()
-
-    def actual_habits_remove(self, note_id: int = None, text: str = None):
-        if note_id:
-            values = (note_id, )
-            query = "DELETE FROM actual_habits WHERE id=(?)"
-        elif text:
-            values = (text, )
-            query = "DELETE FROM actual_habits WHERE text=(?)"
-        else:
-            values = None
-            query = "DELETE FROM actual_habits"
-        self._execute(query, values)
+    @staticmethod
+    def _join_n_questions(values: tuple) -> str:
+        return ", ".join("?" * len(values))

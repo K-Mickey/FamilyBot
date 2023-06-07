@@ -27,12 +27,3 @@ def get_delete_habits(buttons: list) -> InlineKeyboardMarkup:
                                     callback_data=habits_data.new(action="del_all_notes", btn_id="")))
     kb.add(InlineKeyboardButton("<-", callback_data=habits_data.new(action="back_habits_menu", btn_id="")))
     return kb
-
-
-def get_plan_kb():
-    kb = InlineKeyboardMarkup()
-    kb.add(
-        InlineKeyboardButton("Добавить в план", callback_data=habits_data.new(action="add_to_plan", btn_id="")),
-        InlineKeyboardButton("Удалить", callback_data=habits_data.new(action="delete_from_habits", btn_id="")),
-    )
-    return kb

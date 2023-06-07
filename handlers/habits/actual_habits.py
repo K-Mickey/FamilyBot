@@ -30,7 +30,7 @@ async def inline_info_habits(query: CallbackQuery):
 
 @dp.callback_query_handler(actual_habits_data.filter(action="actual_habits_delete_menu"))
 async def actual_habits_show_delete_menu(query: CallbackQuery):
-    list_actual_habits = db.actual_habits_get(text=False)
+    list_actual_habits = db.get(name_table="actual_habits")
     kb = inline.actual_habits.get_delete_actual_habits(list_actual_habits)
     text = "Нажмите <b>дважды на запись</b>, которую хотите удалить." \
         if list_actual_habits else "Нет записей для удаления."
@@ -54,7 +54,7 @@ async def actual_habits_delete_confirm(query: CallbackQuery, callback_data: dict
     prev_btn_id = int(callback_data["btn_id"])
     await state.finish()
     if cur_btn_id == prev_btn_id:
-        db.actual_habits_remove(note_id=cur_btn_id)
+        db.remove(name_table="actual_habits", id=cur_btn_id)
         await query.answer("Запись удалена")
         await actual_habits_show_delete_menu(query)
     else:
@@ -73,7 +73,7 @@ async def actual_habits_remove_all_notes(query: CallbackQuery):
 async def actual_habits_remove_all_notes_accept(query: CallbackQuery, state: FSMContext):
     await state.finish()
     await query.answer("Все сообщения были удалены", show_alert=True)
-    db.actual_habits_remove()
+    db.remove(name_table="actual_habits")
     await inline_main_menu_actual(query)
 
 

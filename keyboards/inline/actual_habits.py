@@ -6,8 +6,8 @@ actual_habits_data = CallbackData("actual_id", "action", "btn_id")
 
 def get_actual_habits(buttons: list) -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup()
-    for button in buttons:
-        btn = str(button[0])
+    for _, button, _ in buttons:
+        btn = str(button)
         kb.add(InlineKeyboardButton(btn, callback_data=actual_habits_data.new(action="info", btn_id="")))
 
     if buttons:

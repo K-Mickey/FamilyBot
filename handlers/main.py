@@ -27,7 +27,7 @@ async def cmd_help(message: Message, state: FSMContext = None):
 @dp.callback_query_handler(habits_data.filter(action="back_habits_menu"))
 @dp.callback_query_handler(inline.main.main_data.filter(action="planing"))
 async def inline_main_menu_planing(query: CallbackQuery):
-    list_habits = db.habits_get(text=False)
+    list_habits = db.get(name_table="habits")
     n_habits = len(list_habits)
     kb = inline.habits.get_habits(list_habits)
 
@@ -42,7 +42,7 @@ async def inline_main_menu_planing(query: CallbackQuery):
 @dp.callback_query_handler(actual_habits_data.filter(action="back_actual_habits_menu"))
 @dp.callback_query_handler(inline.main.main_data.filter(action="actual"))
 async def inline_main_menu_actual(query: CallbackQuery):
-    list_actual_habits = db.actual_habits_get()
+    list_actual_habits = db.get(name_table="actual_habits")
     kb = inline.actual_habits.get_actual_habits(list_actual_habits)
     n_actual_habits = len(list_actual_habits)
 

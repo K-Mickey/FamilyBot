@@ -41,7 +41,8 @@ async def back_to_main_menu(query: CallbackQuery):
 
 @dp.callback_query_handler(habits_data.filter(action="del_all_notes"))
 async def habits_remove_all_notes(query: CallbackQuery):
-    await query.message.edit_text("Вы уверены, что хотите удалить все записи?", reply_markup=inline.choose.confirm())
+    text = "Вы уверены, что хотите удалить <b>все записи?</b>"
+    await query.message.edit_text(text, reply_markup=inline.choose.confirm(), parse_mode="HTML")
     await query.answer()
     await OrderDelAll.confirm.set()
 
@@ -49,21 +50,21 @@ async def habits_remove_all_notes(query: CallbackQuery):
 @dp.callback_query_handler(state=OrderDelAll.confirm, text="yes")
 async def habits_remove_all_notes_confirm(query: CallbackQuery, state: FSMContext):
     await state.finish()
-    await query.answer()
+    await query.answer("Все записи были удалены", show_alert=True)
     db.habits_remove()
-    await query.message.edit_text("Все записи были удалены")
+    await inline_main_menu_planing(query)
 
 
 @dp.callback_query_handler(state=OrderDelAll.confirm, text="no")
 async def habits_remove_all_notes_cancel(query: CallbackQuery, state: FSMContext):
     await state.finish()
-    await query.answer()
-    await query.message.edit_text("Удаление отменено")
+    await query.answer("Удаление отменено")
+    await habits_show_delete_menu(query)
 
 
 @dp.callback_query_handler(habits_data.filter(action="add_note"))
 async def habits_insert_note(query: CallbackQuery):
-    await query.message.edit_text("Введите новую запись")
+    await query.message.edit_text("<i>Отправьте сообщение с новой записью!</i>", parse_mode="HTML")
     await query.answer()
     await OrderAdd.await_text.set()
 
@@ -73,14 +74,15 @@ async def habits_insert_confirm(message: Message, state: FSMContext):
     text = message.html_text
     await state.update_data(text=text)
     await OrderAdd.next()
-    await message.answer(f"Подтвердите ввод\n\n{text}", reply_markup=inline.choose.confirm())
+    msg_text = f"<i>Добавить данную запись?</i>\n\n{text}"
+    await message.answer(msg_text, reply_markup=inline.choose.confirm(), parse_mode="HTML")
 
 
 @dp.callback_query_handler(state=OrderAdd.confirm, text="no")
 async def habits_insert_finish(query: CallbackQuery, state: FSMContext):
     await state.finish()
-    await query.message.edit_text("Добавление отменено")
-    await query.answer()
+    await query.answer("Добавление отменено")
+    await inline_main_menu_planing(query)
 
 
 @dp.callback_query_handler(state=OrderAdd.confirm, text="yes")
@@ -88,8 +90,7 @@ async def habits_insert_cancel(query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     db.habits_insert(data['text'])
     await state.finish()
-    await query.message.answer("Запись успешно добавлена")
-    await query.answer()
+    await query.answer("Запись успешно добавлена")
     await inline_main_menu_planing(query)
 
 
@@ -98,7 +99,7 @@ async def habits_info_about_note(query: CallbackQuery, callback_data: dict, stat
     btn_id = int(callback_data["btn_id"])
     actual_note = db.actual_habits_find_note(btn_id)
     if actual_note:
-        await query.answer("Данная запись уже есть в актуальном плане", show_alert=True)
+        await query.answer("Данная запись уже есть в актуальном плане!", show_alert=True)
     else:
         note = db.habits_find_note(btn_id)
         await OrderInsertActual.confirm.set()
@@ -124,7 +125,9 @@ async def habits_insert_into_actual_list(query: CallbackQuery, callback_data: di
 async def habits_show_delete_menu(query: CallbackQuery):
     buttons = db.habits_get(text=False)
     kb = inline.habits.get_delete_habits(buttons)
-    await query.message.edit_text("Выберите записи для удаления", reply_markup=kb)
+    text = "<b>Дважды</b> нажмите на запись, которую хотите удалить." \
+        if len(buttons) else "Список пуст, нечего удалять."
+    await query.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await query.answer()
 
 

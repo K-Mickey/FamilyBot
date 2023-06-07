@@ -22,7 +22,9 @@ def get_delete_habits(buttons: list) -> InlineKeyboardMarkup:
     for btn_id, text in buttons:
         kb.add(InlineKeyboardButton(str(text), callback_data=habits_data.new(action="delete_note", btn_id=str(btn_id))))
 
-    kb.add(InlineKeyboardButton("Удалить все записи", callback_data=habits_data.new(action="del_all_notes", btn_id="")))
+    if buttons:
+        kb.add(InlineKeyboardButton("Удалить все записи",
+                                    callback_data=habits_data.new(action="del_all_notes", btn_id="")))
     kb.add(InlineKeyboardButton("<-", callback_data=habits_data.new(action="back_habits_menu", btn_id="")))
     return kb
 
